@@ -39,7 +39,11 @@ app.get("/api/shorturl/:url_num", async (req, res) => {
     if (!url_data) {
       return res.json({ error: "invalid URL" });
     }
-    res.redirect(url_data.original_url);
+    if (url_data.original_url.startsWith("http")) {
+      return res.redirect(url_data.original_url);
+    } else {
+      return res.redirect(`http://${url_data.original_url}`);
+    }
   } catch (error) {
     console.log(error);
   }
