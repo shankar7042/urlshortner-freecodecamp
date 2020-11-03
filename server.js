@@ -61,7 +61,11 @@ const dnsLookup = async (url) => {
 app.post("/api/shorturl/new", async (req, res) => {
   const { url } = req.body;
   try {
-    const { address, family } = await dnsLookup(url);
+    if (url.startsWith("http")) {
+      await dnsLookup(url.split("//")[1]);
+    } else {
+      await dnsLookup(url);
+    }
 
     const url_data = await UrlModel.findOne({ original_url: url });
     if (url_data) {
@@ -83,6 +87,7 @@ app.post("/api/shorturl/new", async (req, res) => {
       short_url: new_url_data.short_url,
     });
   } catch (error) {
+    console.log(error);
     return res.json({ error: "invalid URL" });
   }
 });
