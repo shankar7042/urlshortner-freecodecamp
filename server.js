@@ -9,10 +9,6 @@ const port = process.env.PORT || 3000;
 
 /** this project needs a db !! **/
 // mongoose.connect(process.env.DB_URI);
-mongoose.connect(process.env.DB_URI || "mongodb://localhost/url-shortner", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
 
 app.use(cors());
 
@@ -83,6 +79,13 @@ app.post("/api/shorturl/new", async (req, res) => {
   }
 });
 
-app.listen(port, function () {
+app.listen(port, () => {
   console.log(`Node.js listening on port ${port}`);
+  mongoose
+    .connect(process.env.DB_URI || "mongodb://localhost/url-shortner", {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
+    .then(() => console.log("MongoDB Connected"))
+    .catch((err) => console.log(err));
 });
