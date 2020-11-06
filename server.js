@@ -1,17 +1,15 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const dns = require("dns");
 const UrlModel = require("./models/Url");
 
 const app = express();
-require("dotenv").config();
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
 /** this project needs a db !! **/
 // mongoose.connect(process.env.DB_URI);
-mongoose.connect(process.env.DB_URI, {
+mongoose.connect(process.env.DB_URI || "mongodb://localhost/url-shortner", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -49,24 +47,17 @@ app.get("/api/shorturl/:url_num", async (req, res) => {
   }
 });
 
-const dnsLookup = async (url) => {
-  return new Promise((resolve, reject) => {
-    dns.lookup(url, (err, address, family) => {
-      if (err) reject(err);
-      resolve({ address, family });
-    });
-  });
+const validateUrl = (url) => {
+  const regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
+  return regex.test(url);
 };
 
 app.post("/api/shorturl/new", async (req, res) => {
   const { url } = req.body;
   try {
-    if (url.startsWith("http")) {
-      await dnsLookup(url.split("//")[1]);
-    } else {
-      await dnsLookup(url);
+    if (!validateUrl(url)) {
+      return res.json({ error: "invalid URL" });
     }
-
     const url_data = await UrlModel.findOne({ original_url: url });
     if (url_data) {
       return res.json({
